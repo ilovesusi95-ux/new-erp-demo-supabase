@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Demo - 医疗耗材</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50">
+    <div class="flex h-screen">
+        <!-- 侧边栏 -->
+        <div class="w-64 bg-white border-r p-6">
+            <div class="text-2xl font-bold mb-8 text-sky-600">ERP Demo</div>
+            
+            <nav class="space-y-1">
+                <div id="nav-models" onclick="showSection('models')" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center gap-3">
+                    <span>🔧</span> <span>型号规格管理</span>
+                </div>
+                <div id="nav-certificates" onclick="showSection('certificates')" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center gap-3">
+                    <span>📄</span> <span>注册证管理</span>
+                </div>
+                <div id="nav-manufacturers" onclick="showSection('manufacturers')" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center gap-3">
+                    <span>🏭</span> <span>生产企业管理</span>
+                </div>
+                <div id="nav-billing-companies" onclick="showSection('billing-companies')" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center gap-3">
+                    <span>🪞</span> <span>开票企业管理</span>
+                </div>
+                <div id="nav-customers" onclick="showSection('customers')" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center gap-3">
+                    <span>👥</span> <span>客户管理</span>
+                </div>
+                <div id="nav-salespersons" onclick="showSection('salespersons')" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center gap-3">
+                    <span>👤</span> <span>销售人员管理</span>
+                </div>
+                <div id="nav-test-module" onclick="showSection('test-module')" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center gap-3">
+                    <span>🧪</span> <span>测试模块</span>
+                </div>
+                <div id="nav-inventory" onclick="showSection('inventory')" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center gap-3">
+                    <span>📦</span> <span>库存管理</span>
+                </div>
+
+                <!-- 出库管理 -->
+                <div>
+                    <div onclick="toggleOutboundSubmenu()" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span>🚚</span> <span>出库管理</span>
+                        </div>
+                        <span id="outbound-arrow" class="text-xs transition-transform">▼</span>
+                    </div>
+                    
+                    <div id="outbound-submenu" class="hidden ml-6 mt-1 space-y-1 border-l border-slate-200 pl-3">
+                        <div onclick="showSection('sales-outbound'); event.stopImmediatePropagation();" 
+                             class="nav-item px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-100 text-sm flex items-center gap-2">
+                            <span>🛍️</span> <span>销售出库</span>
+                        </div>
+                        <div onclick="showSection('other-outbound'); event.stopImmediatePropagation();" 
+                             class="nav-item px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-100 text-sm flex items-center gap-2">
+                            <span>📦</span> <span>其他出库</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 入库管理 -->
+                <div>
+                    <div onclick="toggleInboundSubmenu()" class="nav-item px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span>🚚</span> <span>入库管理</span>
+                        </div>
+                        <span id="inbound-arrow" class="text-xs transition-transform">▼</span>
+                    </div>
+                    
+                    <div id="inbound-submenu" class="hidden ml-6 mt-1 space-y-1 border-l border-slate-200 pl-3">
+                        <div onclick="showSection('purchase-inbound'); event.stopImmediatePropagation();" 
+                             class="nav-item px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-100 text-sm flex items-center gap-2">
+                            <span>📥</span> <span>采购入库</span>
+                        </div>
+                        <div onclick="showSection('other-inbound'); event.stopImmediatePropagation();" 
+                             class="nav-item px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-100 text-sm flex items-center gap-2">
+                            <span>📦</span> <span>其他入库</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1 p-8 overflow-auto">
+            
+            <div id="models" class="section hidden">
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">正在加载型号规格模块...</p>
+                </div>
+            </div>
+
+            <div id="certificates" class="section hidden">
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">注册证管理模块正在开发中...</p>
+                </div>
+            </div>
+
+            <div id="manufacturers" class="section hidden">
+                <h1 class="text-3xl font-bold mb-6">生产企业管理</h1>
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">生产企业管理模块正在加载...</p>
+                </div>
+            </div>
+
+            <div id="billing-companies" class="section hidden">
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">开票企业管理模块正在加载...</p>
+                </div>
+            </div>
+
+            <div id="customers" class="section hidden">
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">客户管理模块正在加载...</p>
+                </div>
+            </div>
+
+            <div id="salespersons" class="section hidden">
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">销售人员管理模块正在加载...</p>
+                </div>
+            </div>
+
+            <div id="test-module" class="section hidden">
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">测试模块正在加载...</p>
+                </div>
+            </div>
+
+            <div id="inventory" class="section hidden">
+                <h1 class="text-3xl font-bold mb-6">库存管理</h1>
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">库存模块正在开发中...</p>
+                </div>
+            </div>
+
+            <div id="outbound" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold">出库管理</h1>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div onclick="showSection('sales-outbound')" class="bg-white border border-dashed border-sky-300 hover:border-sky-500 rounded-2xl p-8 cursor-pointer flex flex-col items-center justify-center transition-colors">
+                        <div class="text-5xl mb-4">🛍️</div>
+                        <div class="text-xl font-semibold text-sky-600">销售出库</div>
+                        <div class="text-sm text-slate-500 mt-2">创建销售出库单据</div>
+                    </div>
+                    <div onclick="showSection('other-outbound')" class="bg-white border border-dashed border-slate-300 hover:border-slate-500 rounded-2xl p-8 cursor-pointer flex flex-col items-center justify-center transition-colors">
+                        <div class="text-5xl mb-4">📦</div>
+                        <div class="text-xl font-semibold">其他出库</div>
+                        <div class="text-sm text-slate-500 mt-2">创建其他出库单据</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sales-outbound" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold">销售出库</h1>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">销售出库模块正在开发中...</p>
+                </div>
+            </div>
+
+            <div id="other-outbound" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold">其他出库</h1>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">其他出库模块正在开发中...</p>
+                </div>
+            </div>
+
+            <div id="purchase-inbound" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold">采购入库</h1>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">采购入库模块正在开发中...</p>
+                    <div class="mt-4 text-sm text-slate-400">后续会在这里展示「新建采购入库」和「历史单据」两个选项</div>
+                </div>
+            </div>
+
+            <div id="other-inbound" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-3xl font-bold">其他入库</h1>
+                </div>
+                <div class="bg-white p-8 rounded-2xl shadow">
+                    <p class="text-slate-500">其他入库模块正在开发中...</p>
+                    <div class="mt-4 text-sm text-slate-400">后续会在这里展示「新建其他入库」和「历史单据」两个选项</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div id="modal-content" class="bg-white rounded-3xl w-full max-w-lg mx-4"></div>
+    </div>
+
+    <script src="js/data-layer.js"></script>
+    <script src="js/modules/models.js"></script>
+    <script src="js/modules/certificates.js"></script>
+    <script src="js/modules/manufacturers.js"></script>
+    <script src="js/modules/billing-companies.js"></script>
+    <script src="js/modules/customers.js"></script>
+    <script src="js/modules/salespersons.js"></script>
+    <script src="js/modules/test-module.js"></script>
+    <script src="js/modules/inventory.js"></script>
+    <script src="js/modules/sales.js"></script>
+    <script src="js/modules/purchase-inbound.js"></script>
+    <script src="js/modules/other-inbound.js"></script>
+    <script src="js/modules/inbound.js"></script>
+    <script src="js/modules/sales-outbound.js"></script>
+    <script src="js/modules/outbound-slip.js"></script>
+    <script src="js/modules/other-outbound.js"></script>
+    <script src="js/main.js"></script>
+
+    <script>
+        function toggleInboundSubmenu() {
+            const submenu = document.getElementById('inbound-submenu');
+            const arrow = document.getElementById('inbound-arrow');
+            if (!submenu || !arrow) return;
+
+            if (submenu.classList.contains('hidden')) {
+                submenu.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                submenu.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function toggleOutboundSubmenu() {
+            const submenu = document.getElementById('outbound-submenu');
+            const arrow = document.getElementById('outbound-arrow');
+            if (!submenu || !arrow) return;
+
+            if (submenu.classList.contains('hidden')) {
+                submenu.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                submenu.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+    </script>
+</body>
+</html>
